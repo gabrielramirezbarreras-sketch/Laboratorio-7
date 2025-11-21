@@ -1,0 +1,65 @@
+Practica 1: compartir archivos entre linux utilizando NFS.
+sudo apt update
+sudo apt install nfs-kernel-server -y
+sudo mkdir OS3
+mkdir SO3
+cd SO3
+touch Adrian{1..100}.txt
+ls
+cd ..
+sudo chmod 777 OS3
+sudo chown nobody:nogroup OS3
+sudo nano /etc/exports
+SO3 192.168.10.128/24(rw,sync,no_subtree_check)
+sudo exportfs -ra
+sudo systemctl restart nfs-kernel-server
+sudo systemctl enable nfs-kernel-server
+sudo systemctl status nfs-kernel-server
+sudo exportfs -v
+Cliente:
+sudo apt update
+sudo apt install nfs-common -y
+sudo mkdir /mnt/nfsOS3
+sudo mount 192.168.10.129:OS3 /mnt/nfsOS3
+ls /mnt/nfsOS3
+sudo nano /etc/fstab
+192.168.10.129:OS3    /mnt/nfsOS3    nfs    defaults    0  0
+sudo mount -a
+
+Practica 2: Creacion de fileserver compatible con Windows utilizando SAMBA.
+sudo apt update
+sudo adduse Gabriel Ramirez-20251352
+sudo usermod -aG sudo Gabriel Ramirez-20251352
+sudo apt install samba -y
+mkdir GB
+ls -a
+cd GB
+sudo nano /etc/samba/smb.conf
+Script:
+[GB]
+       path = /home/kali/GB
+       available = yes
+       valid users = kali
+       read only = no
+       browsable = yes
+       public = yes
+        writable = yes
+sudo systemctl status smbd
+sudo systemctl enable smbd
+sudo systemctl restart smbd
+sudo smbdpasswd -a kali
+sudo smbpasswd -a kali
+sudo ufw status verbose
+sudo ufw allow 445/tcp
+sudo ufw allow samba
+sudo ufw status verbose
+sudo smbpasswd -a kali
+sudo chown kali:kali GB
+cd GB
+touch Adrian{1..100}.txt
+Sudo smdpasswd -a kali
+Chown
+Windows:
+Adrian99.txt
+el zumzum de la carabela
+\\192.168.10.129\GB
