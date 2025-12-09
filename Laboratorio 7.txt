@@ -64,6 +64,7 @@ Adrian99.txt
 el zumzum de la carabela
 \\192.168.10.129\GB
 
+Practica 3 Samba como Dominio: 
 Instala y configura SAMBA como controlador de dominio, crea un usuario llamado teteretere y anade una VM de Windows a un dominio y loguearte cone se usuario en windows
 sudo apt update && sudo apt install -y samba samba-dsdb-modules samba-vfs-modules krb5-user krb5-config krb5-kdc krb5-admin-server dnsutils
 
@@ -144,3 +145,4 @@ Ingresa las credenciales del administrador cuando se te solicite (usuario: Admin
 
 
 luego de que se agregue al dominio nos pedirá reiniciar y al terminar el reinicio, agregamos otro usuario(lanegracubana)
+
