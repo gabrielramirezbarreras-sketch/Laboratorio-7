@@ -63,3 +63,84 @@ Windows:
 Adrian99.txt
 el zumzum de la carabela
 \\192.168.10.129\GB
+
+Instala y configura SAMBA como controlador de dominio, crea un usuario llamado teteretere y anade una VM de Windows a un dominio y loguearte cone se usuario en windows
+sudo apt update && sudo apt install -y samba samba-dsdb-modules samba-vfs-modules krb5-user krb5-config krb5-kdc krb5-admin-server dnsutils
+
+sudo nano /etc/hosts
+ponemos esta linea 192.168.100.11 dc.os3.inet
+
+configuramos el nombre del host
+sudo hostnamectl set-hostname dc.os3.inet
+sudo hostnamectl
+
+configurar kerberos
+sudo nano /etc/krb5.conf
+borramos todo con ctrl+k
+y ponemos
+
+[libdefaults]
+    default_realm = OS3.INET
+    dns_lookup_realm = false
+    dns_lookup_kdc = true
+
+[realms]
+    OS3.INET = {
+        kdc = dc1.os3.inet
+        admin_server = dc.os3.inet
+    }
+
+[domain_realm]
+    .os3.inet = OS3.INET
+    os3.inet = OS3.INET
+
+configuramos samba
+sudo mv /etc/samba/smb.conf /etc/samba/smb.confbk
+sudo samba-tool domain provision --use-rfc2307 --interactive
+le damos todo enter
+
+reiniciamos servicios samba
+sudo systemctl restart samba-ad-dc
+sudo systemctl start smbd
+sudo systemctl start nmbd
+
+creamos el usuario en Linux
+sudo useradd lanegracubana
+sudo passwd lanegracubana
+
+agregamos usuario a samba
+sudo smbpasswd -a lanegracubana
+sudo smbpasswd -e lanegracubana
+
+YA EN WINDOWS
+entramos un bloc de notas de administrador y abrimos el archivo de host
+C:\Windows\System32\drivers\etc\hosts
+agregamos esta linea al final
+ 192.168.100.11 dc.os3.inet
+
+
+Configura la dirección DNS en la red de la máquina Windows para que apunte a la IP del servidor Samba (192.168.100.11).
+
+Abre Centro de redes y recursos compartidos.
+
+Selecciona Cambiar configuración del adaptador.
+
+Haz clic derecho en tu adaptador de red y selecciona Propiedades.
+
+En Protocolo de Internet versión 4 (TCP/IPv4), haz clic en Propiedades.
+
+Configura el servidor DNS con la dirección 192.168.100.11
+
+
+luego verificamos todo con un nslookup dc.os3.inet
+
+luego nos unimos al dominio 
+
+Ve a Configuración del sistema -> Cambiar la configuración del sistema.
+
+En Miembros de dominio, ingresa os3.inet y haz clic en Aceptar.
+
+Ingresa las credenciales del administrador cuando se te solicite (usuario: Administrator, contra).
+
+
+luego de que se agregue al dominio nos pedirá reiniciar y al terminar el reinicio, agregamos otro usuario(lanegracubana)
