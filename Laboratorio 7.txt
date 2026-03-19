@@ -1,68 +1,137 @@
 Practica 1: compartir archivos entre linux utilizando NFS.
+Servidor principal
 sudo apt update
 sudo apt install nfs-kernel-server -y
-sudo mkdir OS3
-mkdir SO3
-cd SO3
+sudo mkdir /home/oem/SO3
+sudo chmod 777 /home/oem/SO3
+sudo chown nobody:nogroup /home/oem/SO3
+cd /home/oem/SO3
 touch Adrian{1..100}.txt
 ls
-cd ..
-sudo chmod 777 OS3
-sudo chown nobody:nogroup OS3
 sudo nano /etc/exports
-SO3 192.168.10.128/24(rw,sync,no_subtree_check)
+/home/oem/SO3 192.168.140.0/24(rw,sync,no_subtree_check)
 sudo exportfs -ra
 sudo systemctl restart nfs-kernel-server
 sudo systemctl enable nfs-kernel-server
 sudo systemctl status nfs-kernel-server
 sudo exportfs -v
-Cliente:
+sudo ufw disable
+sudo nano /etc/fstab
+192.168.140.129:/home/oem/SO3 /mnt/nfsOS3 nfs defaults,_netdev,x-systemd.automount 0 0
+
+Servidor secundario:
 sudo apt update
 sudo apt install nfs-common -y
 sudo mkdir /mnt/nfsOS3
-sudo mount 192.168.10.129:OS3 /mnt/nfsOS3
+sudo ufw disable
+sudo mount 192.168.140.129:/home/oem/SO3 /mnt/nfsOS3
 ls /mnt/nfsOS3
-sudo nano /etc/fstab
-192.168.10.129:OS3    /mnt/nfsOS3    nfs    defaults    0  0
 sudo mount -a
+cd /home/oem/SO3
+ls
+
+Servidor Principal:
+touch Gabriel.txt
+
+Servidor Secundario
+ls
+y reiniciar
 
 Practica 2: Creacion de fileserver compatible con Windows utilizando SAMBA.
+Instalar SAMBA y habilitar servicio.
+En el Servidor Principal:
+
 sudo apt update
-sudo adduse Gabriel Ramirez-20251352
-sudo usermod -aG sudo Gabriel Ramirez-20251352
 sudo apt install samba -y
-mkdir GB
-ls -a
-cd GB
-sudo nano /etc/samba/smb.conf
-Script:
-[GB]
-       path = /home/kali/GB
-       available = yes
-       valid users = kali
-       read only = no
-       browsable = yes
-       public = yes
-        writable = yes
+
+Verificar estado:
+
 sudo systemctl status smbd
+
+Si no está activo:
+
 sudo systemctl enable smbd
+sudo systemctl start smbd
+
+Crear carpeta compartida:
+sudo mkdir -p /srv/samba/compartido
+
+Crear grupo y usuarios.
+Crear grupo:
+sudo groupadd smbgrupoa
+
+Crear usuario:
+sudo useradd -m -G smbgrupo usuario1
+sudo passwd usuario1
+
+Agregar usuario a Samba:
+sudo smbpasswd -a usuario1
+
+Permisos de la carpeta:
+sudo chown -R root:smbgrupo /srv/samba/compartido
+sudo chmod -R 2770 /srv/samba/compartido
+sudo chmod -R 777 /srv/samba/compartido
+
+Configurar SAMBA.
+Editar archivo:
+sudo nano /etc/samba/smb.conf
+
+Al final agrega:
+[Compartido]
+   path = /srv/samba/compartido
+   valid users = @smbgrupo
+   read only = no
+   browsable = yes
+   writable = yes
+
+Guardar y reiniciar:
 sudo systemctl restart smbd
-sudo smbdpasswd -a kali
-sudo smbpasswd -a kali
-sudo ufw status verbose
-sudo ufw allow 445/tcp
-sudo ufw allow samba
-sudo ufw status verbose
-sudo smbpasswd -a kali
-sudo chown kali:kali GB
-cd GB
+
+Crear los 100 archivos:
 touch Adrian{1..100}.txt
-Sudo smdpasswd -a kali
-Chown
-Windows:
-Adrian99.txt
+
+Verifica:
+ls
+
+Abilitar Firewall:
+sudo ufw enable
+sudo ufw status
+
+Si está activo:
+sudo ufw allow samba
+sudo ufw status
+
+Acceder desde Windows.
+En tu PC Windows:
+Presiona Win + R
+
+Escribe:
+\\192.168.140.129\Compartido
+
+Ingresa:
+Usuario: usuario1
+Contraseña: la que creaste
+
+Mapear unidad de red.
+En “Este equipo”
+Clic en Conectar unidad de red
+
+Ruta:
+\\192.168.140.130\Compartido
+
+Modificar archivo desde Windows.
+Abre:
+adrian99.txt
+Escribe:
 el zumzum de la carabela
-\\192.168.10.129\GB
+Guarda
+
+Verificar en Linux
+
+En el servidor:
+cat /srv/samba/compartido/adrian99.txt
+
+
 
 Practica 3 Samba como Dominio: 
 Instala y configura SAMBA como controlador de dominio, crea un usuario llamado teteretere y anade una VM de Windows a un dominio y loguearte cone se usuario en windows
